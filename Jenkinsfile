@@ -1,4 +1,4 @@
-node('master') {
+node('slave') {
 
     Random random = new Random()
     env.PROJECT = 'platform-dev'
