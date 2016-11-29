@@ -145,7 +145,7 @@ build.properties.local.
 
 Remember to specify the right configuration file before running the tests.
 
-## Checking for coding standards violations
+## Checking for coding standards violations.
 
 When a development build is created by executing the 'build-platform-dev' Phing
 target PHP CodeSniffer will be set up and can be run with the following
