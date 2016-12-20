@@ -41,8 +41,11 @@ node('linux') {
                     if (env.WD_BROWSER_NAME == 'phantomjs') {
                         sh "phantomjs --webdriver=${env.WD_HOST}:${env.WD_PORT} &"
                     }
-                    sh './bin/behat -c build/behat.api.yml --colors -f pretty --strict'
-                    sh './bin/behat -c build/behat.i18n.yml --colors -f pretty --strict'
+                    sh './bin/behat -c tests/behat.yml tests/features/group1 --colors -f pretty --strict'
+                    sh './bin/behat -c tests/behat.yml tests/features/group2 --colors -f pretty --strict'
+                    sh './bin/behat -c tests/behat.yml tests/features/group3 --colors -f pretty --strict'
+                    sh './bin/behat -c tests/behat.yml tests/features/group4 --colors -f pretty --strict'
+                    sh './bin/behat -c tests/behat.yml tests/features/group5 --colors -f pretty --strict'
                 }
             }
         }
