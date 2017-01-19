@@ -1,6 +1,7 @@
-build:
-  image: fpfis/php56
-  commands: 
-    - php --version
-    - composer
+pipeline:
+  build:
+    image: fpfis/php56
+    commands: 
+      - php --version
+      - composer
   
