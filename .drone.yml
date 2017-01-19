@@ -20,7 +20,7 @@ pipeline:
       - curl http://127.0.0.1:80
       # varnished version
       - curl http://127.0.0.1:6081
-      - ./bin/phpcs
+      # - ./bin/phpcs
       - ./bin/behat -c build/behat.yml --colors --strict
 
 services:
