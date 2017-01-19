@@ -13,7 +13,7 @@ services:
   web:
     image: fpfis/php56
     environment:
-      - DOCROOT=${DRONE_BUILD_DIR}/build 
+      - DOCROOT=/drone/src/github.com/ec-europa/platform-dev/build
   mysql:
     image: fpfis/mysql56
   redis:
