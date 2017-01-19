@@ -1,6 +1,6 @@
 pipeline:
   build:
-    image: fpfis/php56
+    image: fpfis/php56:latest
     commands: 
       - php --version
       - composer install
