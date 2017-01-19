@@ -9,3 +9,5 @@ pipeline:
 services:
   mysql:
     image: fpfis/mysql56
+  redis:
+    image: fpfis/redis
