@@ -11,3 +11,5 @@ services:
     image: fpfis/mysql56
   redis:
     image: fpfis/redis
+  varnish:
+    image: fpfis/nexteuropa-varnish5
