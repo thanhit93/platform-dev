@@ -7,9 +7,12 @@ pipeline:
       - mysqladmin -h 127.0.0.1 create platform
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer)
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform
-      - netstat -lnp
+      # uncached version
       - curl http://127.0.0.1:80
+      # varnished version
+      - curl http://127.0.0.1:6081 
 services:
+
   web:
     image: fpfis/php56
     environment:
