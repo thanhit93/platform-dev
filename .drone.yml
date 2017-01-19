@@ -4,4 +4,4 @@ pipeline:
     commands: 
       - php --version
       - composer install
-      - ./bin/phing build-platform-dist
+      - ./bin/phing build-platform-dist -Dcomposer.bin=$(which composer)
