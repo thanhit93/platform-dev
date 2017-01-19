@@ -4,7 +4,6 @@ pipeline:
     commands: 
       - php --version
       - composer install --ansi
-      - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
       - mysqladmin -h 127.0.0.1 create platform
   build:
     image: fpfis/php56
@@ -17,6 +16,7 @@ pipeline:
   test:
     image: fpfis/php56
     commands:
+      - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
       # uncached version
       - curl http://127.0.0.1:80
       # varnished version
