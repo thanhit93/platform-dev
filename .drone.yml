@@ -3,5 +3,6 @@ pipeline:
     image: fpfis/php56
     commands: 
       - php --version
-      - composer
-  
+      - composer install
+      - ./bin/phing build-dist
+
