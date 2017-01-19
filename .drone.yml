@@ -4,5 +4,4 @@ pipeline:
     commands: 
       - php --version
       - composer install
-      - ./bin/phing build-dist
-
+      - ./bin/phing build-platform-dist
