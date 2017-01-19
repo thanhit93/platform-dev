@@ -1,7 +1,11 @@
 pipeline:
   build:
-    image: fpfis/php56:latest
+    image: fpfis/php56
     commands: 
       - php --version
       - composer --ansi install
       - ./bin/phing build-platform-dist -Dcomposer.bin=$(which composer)
+
+services:
+  mysql:
+    image: fpfis/mysql56
