@@ -2,6 +2,7 @@ pipeline:
   build:
     image: fpfis/php56:latest
     commands: 
+      - docker pull fpfis/php56:latest
       - php --version
       - composer install
       - ./bin/phing build-dist
