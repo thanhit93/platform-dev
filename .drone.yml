@@ -3,9 +3,9 @@ pipeline:
     image: fpfis/php56
     commands: 
       - php --version
-      - composer --ansi install
-      - ./bin/phing build-platform-dist -Dcomposer.bin=$(which composer)
-
+      - netstat -lnp
+      - mysql --version
+      - mysqladmin create database1
 services:
   mysql:
     image: fpfis/mysql56
