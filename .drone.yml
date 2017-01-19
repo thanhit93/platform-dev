@@ -5,8 +5,6 @@ pipeline:
       - php --version
       - composer install --ansi
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
-      - yum install -y php56e-devel php56e-pear
-      - pecl install xdebug
       - mysqladmin -h 127.0.0.1 create platform
   build:
     image: fpfis/php56
