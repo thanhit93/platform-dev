@@ -23,3 +23,5 @@ services:
     image: fpfis/redis
   varnish:
     image: fpfis/nexteuropa-varnish5
+  selenium:
+    image: selenium/standalone-chrome
