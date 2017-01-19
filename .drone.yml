@@ -1,18 +1,29 @@
 pipeline:
-  build:
+  prepare:
     image: fpfis/php56
     commands: 
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
+  build:
+    image: fpfis/php56
+    commands: 
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer)
+  install:
+    image: fpfis/php56
+      commands:
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform
+  test:
+    image: fpfis/php56
+      commands:
       # uncached version
       - curl http://127.0.0.1:80
       # varnished version
-      - curl http://127.0.0.1:6081 
-services:
+      - curl http://127.0.0.1:6081
+      - ./bin/phpcs
+      - ./bin/behat -c build/behat.yml --colors --strict
 
+services:
   web:
     image: fpfis/php56
     environment:
