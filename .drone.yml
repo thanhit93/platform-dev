@@ -12,8 +12,8 @@ pipeline:
 services:
   web:
     image: fpfis/php56
-    volumes:
-      - ./build:/var/www/html
+    environment:
+      - DOCROOT="$(pwd)" 
   mysql:
     image: fpfis/mysql56
   redis:
