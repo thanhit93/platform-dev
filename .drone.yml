@@ -3,5 +3,5 @@ pipeline:
     image: fpfis/php56:latest
     commands: 
       - php --version
-      - composer install
+      - composer --ansi install
       - ./bin/phing build-platform-dist -Dcomposer.bin=$(which composer)
