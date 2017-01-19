@@ -3,9 +3,10 @@ pipeline:
     image: fpfis/php56
     commands: 
       - php --version
-      - netstat -lnp
-      - mysql --version
-      - mysqladmin -h 127.0.0.1 create database1
+      - composer install --ansi
+      - mysqladmin -h 127.0.0.1 create platform
+      - ./bin/phing build-platform-dev
+      - ./bin/phing install-platform-dev -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform
 services:
   web:
     image: fpfis/php56
