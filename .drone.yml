@@ -1,14 +1,46 @@
-pipeline:
-  prepare:
+# First declare a few services that will run in background,
+# mostly from https://hub.docker.com/r/fpfis/
+services:
+  # centos 6 + httpd + php56
+  web:
     image: fpfis/php56
+    environment:
+      - DOCROOT=/drone/src/github.com/ec-europa/platform-dev/build
+  # centos 6 + mysql community
+  mysql:
+    image: fpfis/mysql56
+  # centos 6 + redis
+  redis:
+    image: fpfis/redis
+  # centos 6 + varnish 5 + varnish plugins + nexteuropa VCL
+  varnish:
+    image: fpfis/nexteuropa-varnish5
+  # Selenium standalone
+  selenium:
+    image: selenium/standalone-firefox
+
+# Start a pipeline ( sets of steps )
+# Be advised that the container will be a new one every step
+# therefore loosing all customization made in the previous step
+# ( php settings, extension install )
+pipeline:
+  # Step name "prepare"
+  prepare:
+    # Use php56 image
+    image: fpfis/php56
+    # Run the following commands
     commands: 
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
+      
+  # Step name build
   build:
     image: fpfis/php56
     commands: 
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer)
+      
+  # And so on ...
   install:
     image: fpfis/php56
     commands:
@@ -16,24 +48,12 @@ pipeline:
   test:
     image: fpfis/php56
     commands:
+      # increase memory_limit for testing :
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
-      # uncached version
+      # check uncached version
       - curl http://127.0.0.1:80
-      # varnished version
+      # check varnished version
       - curl http://127.0.0.1:6081
       # - ./bin/phpcs
+      # Run behat tests :
       - ./bin/behat -c build/behat.yml --colors --strict
-
-services:
-  web:
-    image: fpfis/php56
-    environment:
-      - DOCROOT=/drone/src/github.com/ec-europa/platform-dev/build
-  mysql:
-    image: fpfis/mysql56
-  redis:
-    image: fpfis/redis
-  varnish:
-    image: fpfis/nexteuropa-varnish5
-  selenium:
-    image: selenium/standalone-chrome
