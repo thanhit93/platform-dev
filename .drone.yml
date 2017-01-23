@@ -36,6 +36,7 @@ pipeline:
     # Run the following commands
     commands:
       - ls -lha
+      - export
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
