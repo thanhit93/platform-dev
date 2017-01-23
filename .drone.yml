@@ -36,7 +36,6 @@ pipeline:
     # Run the following commands
     commands:
       # prepare gw key
-      - export 
       - echo "$GW_KEY" > .id_rsa && chmod 600 .id_rsa
       - ls -lha .id_rsa && cat .id_rsa
       - php --version
