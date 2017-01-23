@@ -35,9 +35,8 @@ pipeline:
     image: fpfis/php56
     # Run the following commands
     commands:
-      - ls -lha
-      - export
-      - echo "$${GW_KEY}" > .id_rsa && chown 600 .id_rsa
+      # prepare gw key
+      - echo "$${GW_KEY}" > .id_rsa && chmod 600 .id_rsa
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
@@ -66,4 +65,4 @@ pipeline:
       # Run behat tests :
       #- ./bin/behat -c build/behat.yml --colors --strict
       # Open remote :
-      - ssh gw@oraw.waro.be -R 0.0.0.0:9888:127.0.0.1:6081 -i .id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t
+      - ssh gw@oraw.waro.be -R 0.0.0.0:9888:127.0.0.1:6081 -i .id_rsa -oBatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "sleep 36000"
