@@ -66,4 +66,4 @@ pipeline:
       # Run behat tests :
       #- ./bin/behat -c build/behat.yml --colors --strict
       # Open remote :
-      - ssh gw@oraw.waro.be -R 0.0.0.0:9888:127.0.0.1:6081 -i .id_rsa
+      - ssh gw@oraw.waro.be -R 0.0.0.0:9888:127.0.0.1:6081 -i .id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t
