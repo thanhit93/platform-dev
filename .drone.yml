@@ -37,11 +37,11 @@ pipeline:
     commands:
       - ls -lha
       - export
-      - echo $${GW_KEY}
+      - echo "$${GW_KEY}" > .id_rsa && chown 600 .id_rsa
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
-      
+
   # Step name build
   build:
     image: fpfis/php56
@@ -64,4 +64,6 @@ pipeline:
       - curl http://127.0.0.1:6081
       # - ./bin/phpcs
       # Run behat tests :
-      - ./bin/behat -c build/behat.yml --colors --strict
+      #- ./bin/behat -c build/behat.yml --colors --strict
+      # Open remote :
+      - ssh gw@oraw.waro.be -R 0.0.0.0:9888:127.0.0.1:6081 -i .id_rsa
