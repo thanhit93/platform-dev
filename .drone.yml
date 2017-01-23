@@ -37,7 +37,6 @@ pipeline:
     commands:
       # prepare gw key
       - export GW_PORT=$(shuf -i 64000-65535 -n 1)
-      - echo "$GW_KEY" > .id_rsa && chmod 600 .id_rsa
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
@@ -67,4 +66,4 @@ pipeline:
       #- ./bin/behat -c build/behat.yml --colors --strict
       # Open remote :
       - echo "Opening remote on http://91.121.78.94:${REMOTE_PORT}"
-      - ssh gw@oraw.waro.be -R 0.0.0.0:${GW_PORT}:127.0.0.1:6081 -i ./.id_rsa -oBatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "echo Opened for 1H && sleep 3600"
+      - ssh gw@oraw.waro.be -R 0.0.0.0:10000:127.0.0.1:6081 -i ./.id_rsa -oBatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "echo Opened for 1H && sleep 3600"
