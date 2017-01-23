@@ -34,7 +34,8 @@ pipeline:
     # Use php56 image
     image: fpfis/php56
     # Run the following commands
-    commands: 
+    commands:
+      - ls -lha
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
