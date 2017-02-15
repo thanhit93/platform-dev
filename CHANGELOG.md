@@ -1,5 +1,13 @@
 # NextEuropa Platform change log
 
+## Version 2.4.0
+
+### Improvements
+
+### New features (For more details on each feature, see the README.md file at the root of the feature's folder)
+  * NEPT-451 - Add Nagios and nexteuropa_nagios module to the Core stack
+### Bug fixes
+
 ## Version 2.3.0
 
 ### Improvements
