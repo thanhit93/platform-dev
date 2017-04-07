@@ -1,6 +1,121 @@
 <?php
-
 /**
  * @file
  * Module file of the TMGMT DGT connector.
  */
+
+define('TMGMT_DGT_CONNECTOR_VAR_NAME_NODE_WBM_STATES', 'tmgmt_workbench_moderation_states');
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter function for the form on the 'Translate' tab.
+ */
+function tmgmt_dgt_connector_form_tmgmt_entity_ui_translate_form_alter(&$form, $form_state) {
+  $entity_type = $form_state['entity_type'];
+
+  if ($entity_type == 'node') {
+    // Managing the display of the "Add to cart" button.
+    if (isset($form['top_actions']['add_to_cart'])) {
+      $node = $form_state['entity'];
+      $button_is_viewable = _tmgmt_dgt_connector_node_allowed_for_cart($node);
+      $form['top_actions']['add_to_cart']['#access'] = $button_is_viewable;
+    }
+  }
+}
+
+/**
+ * Checks if the node can be added to a cart.
+ *
+ * @param object $node
+ *   The node to check.
+ *
+ * @return bool
+ *   True if it can be added; otherwise FALSE;
+ */
+function _tmgmt_dgt_connector_node_allowed_for_cart($node) {
+
+  // Check if the content workbench_moderation state allows continuing the
+  // process.
+  if (workbench_moderation_node_moderated($node)) {
+    // We reuse temporally variables set in tmgmt_poetry module.
+    // TODO In milestone 2: Use a variable specific to this module.
+    // For replacing tmgmt_workbench_moderation_states.
+    $stored_states = variable_get(TMGMT_DGT_CONNECTOR_VAR_NAME_NODE_WBM_STATES, array());
+    $states = array_values($stored_states);
+    $state = $node->workbench_moderation['current']->state;
+    if (!in_array($state, $states, 'strict')) {
+      return FALSE;
+    }
+  }
+
+  // Check that the content is not implied in an existing process.
+  // If yes, we do not allow to add it to a cart until the current job is
+  // treated.
+  $node_job_exist = tmgmt_dgt_connector_node_translation_job_exist($node);
+
+  return (!$node_job_exist);
+}
+
+/**
+ * Check if a node is in an active TMGMT job.
+ *
+ * @param object $node
+ *   The node to check.
+ *
+ * @return bool
+ *   TRUE if it is include in an active job; otherwise FALSE;
+ */
+function tmgmt_dgt_connector_node_translation_job_exist($node) {
+  $nid = $node->nid;
+  $source_language = $node->translations->original;
+  $query = db_select('tmgmt_job_item', 'tji');
+  $query->innerJoin('tmgmt_job', 'tj', 'tj.tjid = tji.tjid');
+  $query->condition('tj.source_language', $source_language)
+    // Only query for jobs that are currently active.
+    ->condition('tj.state', array(TMGMT_JOB_STATE_UNPROCESSED, TMGMT_JOB_STATE_ACTIVE))
+    // And only query for job items that are not yet finished.
+    ->condition('tji.state', TMGMT_JOB_ITEM_STATE_ACCEPTED, '<>')
+    ->condition('tji.item_type', 'node')
+    ->condition('tji.item_id', $nid)
+    ->fields('tji', array('tjiid'));
+  $query->range(0, 1);
+
+  return (!empty($query->execute()->fetchField()));
+}
+
+/**
+ * Implements hook_tmgmt_source_plugin_info_alter().
+ *
+ * It alters the "workbench_moderation" plugin info for allowing extending the
+ * plugin UI controller.
+ *
+ * @see TMGMTWorkbenchSourceUIController
+ */
+function tmgmt_dgt_connector_tmgmt_source_plugin_info_alter(&$info) {
+  if (isset($info['workbench_moderation'])) {
+    $info['workbench_moderation']['ui controller class'] = 'TMGMTWorkbenchCardSourceUIController';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * It adds a warning message above the TMGMT source form "Workbench moderation".
+ */
+function tmgmt_dgt_connector_form_tmgmt_ui_workbench_moderation_source_node_overview_form_alter(&$form, &$form_state) {
+  $message = t('The table below only displays content that have not been sent for translation. <br />  
+  The others cannot be selected until their current translation process is achieved.');
+  $form['items']['#prefix'] = theme('form_warning_message', array('message' => $message));
+}
+
+/**
+ * Implements hook_theme().
+ */
+function tmgmt_dgt_connector_theme() {
+  return array(
+    'form_warning_message' => array(
+      'variables' => array('message' => '', 'status' => 'warning'),
+      'template' => 'templates/form-warning-message',
+    ),
+  );
+}

@@ -158,6 +158,7 @@ function tmgmt_workbench_form_tmgmt_entity_ui_translate_form_alter(&$form, $form
         // Disable checkbox selection if current node revision is not
         // in translatable moderation states.
         if (!$translation_possible) {
+          $item = $existing_jobs[$lang_code];
           $form['languages'][$lang_code] = array(
             '#type' => 'checkbox',
             '#disabled' => TRUE,
@@ -176,8 +177,10 @@ function tmgmt_workbench_form_tmgmt_entity_ui_translate_form_alter(&$form, $form
       }
 
       if (!module_exists('tmgmt_dgt_connector')) {
-        // Remove add to cart button.
-        unset($form['top_actions']);
+        // Hide add to cart button.
+        if (isset($form['top_actions']['add_to_cart'])) {
+          $form['top_actions']['add_to_cart']['#access'] = FALSE;
+        }
       }
     }
   }

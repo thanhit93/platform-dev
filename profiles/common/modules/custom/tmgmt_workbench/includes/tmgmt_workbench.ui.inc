@@ -31,7 +31,7 @@ class TMGMTWorkbenchSourceUIController extends TMGMTEntitySourceUIController {
       $row['title'] = l($current_revision->title, 'node/' . $current_revision->nid);
     }
     else {
-      $row['title'] = l($current_revision->title, 'node/' . $current_revision->nid . '/draft');
+      $row['title'] = l($current_revision->title, 'node/' . $current_revision->nid . '/current-revision');
     }
     $row['state'] = $state;
     return $row;

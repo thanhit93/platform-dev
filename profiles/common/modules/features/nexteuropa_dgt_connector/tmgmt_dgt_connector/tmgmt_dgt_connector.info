@@ -5,3 +5,6 @@ package = Translation Management
 core = 7.x
 
 dependencies[] = tmgmt_poetry
+
+
+files[] = includes/tmgmt_dgt_connector.ui.inc
