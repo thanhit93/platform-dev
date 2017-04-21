@@ -9,7 +9,6 @@ use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\TableNode;
-use Behat\Mink\Element\Element;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Exception\ExpectationException;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
@@ -19,20 +18,6 @@ use Behat\Gherkin\Node\PyStringNode;
  * Contains generic step definitions.
  */
 class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext {
-
-  /**
-   * List of modules to enable.
-   *
-   * @var array
-   */
-  protected $modules = array();
-
-  /**
-   * List of feature sets to enable.
-   *
-   * @var array
-   */
-  protected $featureSets = array();
 
   /**
    * Checks that a 403 Access Denied error occurred.
@@ -45,6 +30,11 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
 
   /**
    * Checks that the given select field has the options listed in the table.
+   *
+   * Usage example:
+   *   Then I should have the following options for "edit-operation":
+   *     | options               |
+   *     | editorial team member |
    *
    * @Then I should have the following options for :select:
    */
@@ -81,6 +71,11 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
 
   /**
    * Checks that the given select field doesn't have the listed options.
+   *
+   * Usage example:
+   *   Then I should not have the following options for "edit-operation":
+   *     | options               |
+   *     | editorial team member |
    *
    * @Then I should not have the following options for :select:
    */
@@ -129,129 +124,6 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
   public function assertElementType(NodeElement $element, $type) {
     if ($element->getTagName() !== $type) {
       throw new ExpectationException("The element is not a '$type'' field.", $this->getSession());
-    }
-  }
-
-  /**
-   * Disabled and uninstall modules.
-   *
-   * @AfterScenario
-   */
-  public function cleanModule() {
-    if (!empty($this->modules)) {
-      // Disable and uninstall any modules that were enabled.
-      module_disable($this->modules);
-      drupal_uninstall_modules($this->modules);
-      $this->modules = array();
-    }
-  }
-
-  /**
-   * Enables one or more modules.
-   *
-   * Provide modules data in the following format:
-   *
-   * | modules  |
-   * | blog     |
-   * | book     |
-   *
-   * @param TableNode $modules_table
-   *   The table listing modules.
-   *
-   * @return bool
-   *   Always returns TRUE.
-   *
-   * @throws \Exception
-   *   Thrown when a module does not exist.
-   *
-   * @Given the/these module/modules is/are enabled
-   */
-  public function enableModule(TableNode $modules_table) {
-    $rebuild = FALSE;
-    $message = array();
-    foreach ($modules_table->getHash() as $row) {
-      if (!module_exists($row['modules'])) {
-        if (!module_enable($row)) {
-          $message[] = $row['modules'];
-        }
-        else {
-          $this->modules[] = $row['modules'];
-          $rebuild = TRUE;
-        }
-      }
-    }
-
-    if (!empty($message)) {
-      throw new \Exception(sprintf('Modules "%s" not found', implode(', ', $message)));
-    }
-    else {
-      if ($rebuild) {
-        drupal_flush_all_caches();
-      }
-      return TRUE;
-    }
-  }
-
-  /**
-   * Enables one or more Feature Set(s).
-   *
-   * Provide feature set names in the following format:
-   *
-   * | featureSet  |
-   * | Events      |
-   * | Links       |
-   *
-   * @param TableNode $featureset_table
-   *   The table listing feature set titles.
-   *
-   * @Given the/these featureSet/FeatureSets is/are enabled
-   */
-  public function enableFeatureSet(TableNode $featureset_table) {
-    $rebuild = FALSE;
-    $message = array();
-    $featuresets = feature_set_get_featuresets();
-    foreach ($featureset_table->getHash() as $row) {
-      foreach ($featuresets as $featureset_available) {
-        if ($featureset_available['title'] == $row['featureSet'] &&
-        feature_set_status($featureset_available) === FEATURE_SET_DISABLED) {
-          if (feature_set_enable_feature_set($featureset_available)) {
-            $this->featureSets[] = $featureset_available;
-            $rebuild = TRUE;
-          }
-          else {
-            $message[] = $row['featureSet'];
-          }
-        }
-      }
-    }
-    if (!empty($message)) {
-      throw new \Exception(sprintf('Feature Set "%s" not correctly enabled', implode(', ', $message)));
-    }
-    else {
-      if ($rebuild) {
-        drupal_flush_all_caches();
-      }
-      return TRUE;
-    }
-  }
-
-  /**
-   * Disables one or more Feature Set(s).
-   *
-   * Disable any Feature Set that were enabled during Feature test.
-   *
-   * @AfterScenario
-   */
-  public function cleanFeatureSet() {
-    if (!empty($this->featureSets)) {
-      // Disable and uninstall any feature set that were enabled.
-      foreach ($this->featureSets as $featureset) {
-        if (isset($featureset['disable'])) {
-          $featureset['uninstall'] = $featureset['disable'];
-          feature_set_disable_feature_set($featureset);
-        }
-      }
-      $this->featureSets = array();
     }
   }
 
@@ -540,7 +412,7 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
    *    Print out descriptive error message by throwing an exception.
    */
   protected function addMembertoGroup($account, $group_role, $group, $group_type = 'node') {
-    list($gid,,) = entity_extract_ids($group_type, $group);
+    list($gid, ,) = entity_extract_ids($group_type, $group);
     $membership = og_group($group_type, $gid, array(
       'entity type' => 'user',
       'entity' => $account,
@@ -572,60 +444,16 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
    *   When no node is found.
    */
   protected function getNodeByTitle($type, $title) {
-    if (!($node = node_load_multiple(array(), array('type' => $type, 'title' => $title), TRUE))) {
+    if (!($node = node_load_multiple(array(), array(
+      'type' => $type,
+      'title' => $title,
+    ), TRUE))
+    ) {
       throw new ExpectationException("There's no '$type' node entitled '$title'.", $this->getSession());
     }
     $node = reset($node);
     return $node;
 
-  }
-
-  /**
-   * Attempts to find and check a checkbox in a table row containing given text.
-   *
-   * @param string $row_text
-   *    Text on the table row.
-   *
-   * @throws \Behat\Mink\Exception\ExpectationException
-   *    Throw exception if class table row was not found.
-   *
-   * @Given I check the box on the :row_text row
-   */
-  public function checkCheckboxOnTableRow($row_text) {
-    $page = $this->getSession()->getPage();
-    if ($checkbox = $this->getTableRow($page, $row_text)->find('css', 'input[type=checkbox]')) {
-      $checkbox->check();
-      return;
-    }
-    throw new ExpectationException(sprintf('Found a row containing "%s", but no "%s" link on the page %s', $row_text, $checkbox, $this->getSession()->getCurrentUrl()), $this->getSession());
-  }
-
-  /**
-   * Retrieve a table row containing specified text from a given element.
-   *
-   * @param Element $element
-   *    Mink element object.
-   * @param string $search
-   *    Table row text.
-   *
-   * @throws \Exception
-   *    Throw exception if class table row was not found.
-   *
-   * @return NodeElement
-   *    Table row node element.
-   */
-  public function getTableRow(Element $element, $search) {
-    $rows = $element->findAll('css', 'tr');
-    if (empty($rows)) {
-      throw new \Exception(sprintf('No rows found on the page %s', $this->getSession()->getCurrentUrl()));
-    }
-    /** @var NodeElement $row */
-    foreach ($rows as $row) {
-      if (strpos($row->getText(), $search) !== FALSE) {
-        return $row;
-      }
-    }
-    throw new \Exception(sprintf('Failed to find a row containing "%s" on the page %s', $search, $this->getSession()->getCurrentUrl()));
   }
 
   /**
@@ -667,6 +495,18 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
   }
 
   /**
+   * Assert that the given form element is disabled.
+   *
+   * @Then the :label checkbox should be disabled
+   * @Then the :label form element should be disabled
+   */
+  public function assertDisabledElement($label) {
+    if (!$this->assertSession()->fieldExists($label)->hasAttribute('disabled')) {
+      throw new ExpectationException("Form element '{$label}' is not disabled", $this->getDriver());
+    }
+  }
+
+  /**
    * Reinitialize some Community environment settings.
    *
    * @AfterFeature @cleanCommunityEnvironment
@@ -701,7 +541,6 @@ class FeatureContext extends RawDrupalContext implements SnippetAcceptingContext
     }
 
     drupal_flush_all_caches();
-
   }
 
 }

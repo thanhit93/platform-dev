@@ -29,6 +29,13 @@ class TaxonomyContext implements Context {
   protected $fields = [];
 
   /**
+   * List of Terms created during test execution.
+   *
+   * @var \Fields[]
+   */
+  protected $terms = [];
+
+  /**
    * The transliterate utility object.
    *
    * @var \Drupal\nexteuropa\Component\Utility\Transliterate
@@ -43,16 +50,32 @@ class TaxonomyContext implements Context {
   }
 
   /**
-   * Create vocabulary.
+   * Check vocabulary.
    *
    * @param string $name
    *    Name of the taxonomy.
    *
    * @Given the vocabulary :name exists
+   */
+  public function assertVocabulary($name) {
+    $this->getTaxonomyIdByName($name);
+  }
+
+  /**
+   * Create vocabulary.
+   *
+   * @param string $name
+   *    Name of the taxonomy.
+   *
+   * @Given the vocabulary :name is created
    *
    * @When I create a new vocabulary :name
    */
   public function iCreateNewVocabulary($name) {
+    if (taxonomy_vocabulary_machine_name_load($this->transliterate->getMachineName($name))) {
+      return;
+    }
+
     $vocabulary = array(
       'name' => $name,
       'machine_name' => $this->transliterate->getMachineName($name),
@@ -75,7 +98,7 @@ class TaxonomyContext implements Context {
     foreach ($this->vocabularies as $vocabulary_name) {
       taxonomy_vocabulary_delete($this->getTaxonomyIdByName($vocabulary_name));
     }
-    $this->vocabularies = [];
+    $this->vocabularies = array();
   }
 
   /**
@@ -96,6 +119,47 @@ class TaxonomyContext implements Context {
     $term->vid = $this->getTaxonomyIdByName($vocabulary_name);
     $term->parent = 0;
     taxonomy_term_save($term);
+    $this->terms[] = $term->tid;
+  }
+
+  /**
+   * Create term with a parent in a vocabulary.
+   *
+   * @param string $term_name
+   *    Name of the term.
+   * @param string $vocabulary_name
+   *    Name of the vocabulary.
+   *
+   * @Given the term :term_name with the parent term :parent_term in the vocabulary :vocabulary_name exists
+   *
+   * @Then I create a new term :term_name with a parent term :parent_term in the vocabulary :vocabulary_name
+   */
+  public function iCreateNewTermWithParentInTheVocabulary($term_name, $parent_name, $vocabulary_name) {
+    $parent_terms = taxonomy_get_term_by_name($parent_name, $vocabulary_name);
+    if (!empty($parent_terms)) {
+      $parent_term = array_shift($parent_terms);
+      $term = new \stdClass();
+      $term->name = $term_name;
+      $term->vid = $this->getTaxonomyIdByName($vocabulary_name);
+      $term->parent = $parent_term->tid;
+      taxonomy_term_save($term);
+      $this->terms[] = $term->tid;
+    }
+    else {
+      throw new \InvalidArgumentException("The parent term '{$parent_name}' doesn't exist.");
+    }
+  }
+
+  /**
+   * Revert to previous settings after scenario execution.
+   *
+   * @AfterScenario
+   */
+  public function removeTerms() {
+    // Remove the vocabularies.
+    foreach ($this->terms as $tid) {
+      taxonomy_term_delete($tid);
+    }
   }
 
   /**
@@ -207,7 +271,7 @@ class TaxonomyContext implements Context {
     foreach ($this->fields as $field) {
       field_delete_field($field['field_name']);
     }
-    $this->fields = [];
+    $this->fields = array();
     field_purge_batch(100);
   }
 

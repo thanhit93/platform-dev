@@ -385,11 +385,17 @@ function nexteuropa_multilingual_tokens_alter(array &$replacements, array $conte
     $entity_properties = $wrapper->getPropertyInfo();
     // Check if the title module is used to manage the title as a field.
     if (isset($entity_properties['title_field'])) {
-      $replacements['[node:source:title]'] = $wrapper->language($original_language)->title_field->raw();
+      $value = $wrapper->language($original_language)->title_field->value();
+      if (is_string($value)) {
+        $replacements['[node:source:title]'] = filter_xss($value);
+      }
+      elseif (is_array($value) && isset($value['format'])) {
+        $replacements['[node:source:title]'] = check_markup($value['value'], $value['format']);
+      }
     }
     else {
-      $replacements['[node:source:title]'] = $wrapper->language($original_language)
-        ->label();
+      $value = $wrapper->language($original_language)->label();
+      $replacements['[node:source:title]'] = filter_xss($value);
     }
   }
 }
@@ -677,6 +683,23 @@ function nexteuropa_multilingual_field_language_alter(&$display_language, $conte
       if (!in_array($language, $allowed_languages)) {
         $language = LANGUAGE_NONE;
       }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function nexteuropa_multilingual_entity_info_alter(&$entity_info) {
+  if (module_exists('file_entity')) {
+    if (!isset($entity_info['file']['translation']['entity_translation'])) {
+      $entity_info['file']['translation']['entity_translation'] = array(
+        'class' => 'EntityTranslationFileHandler',
+        'edit form' => 'file',
+      );
+    }
+    else {
+      $entity_info['file']['translation']['entity_translation']['class'] = 'EntityTranslationFileHandler';
     }
   }
 }
