@@ -1,14 +1,19 @@
 # First declare a few services that will run in background,
 # mostly from https://hub.docker.com/r/fpfis/
+matrix:
+  FPFIS_PHP_VERSION:
+    - 56 
+    - 70
+    - 71
 services:
-  # centos 6 + httpd + php56
+  # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
-    image: fpfis/php56
+    image: fpfis/php${FPFIS_PHP_VERSION}
     environment:
       - DOCROOT=/drone/src/github.com/ec-europa/platform-dev/build
   # centos 6 + mysql community
   mysql:
-    image: fpfis/mysql56
+    image: fpfis/mysql${FPFIS_PHP_VERSION}
   # centos 6 + redis
   redis:
     image: fpfis/redis
@@ -22,7 +27,7 @@ services:
     image: fpfis/solr5
   # Selenium standalone
   selenium:
-    image: selenium/standalone-firefox
+    image: selenium/standalone-chrome
 
 # Start a pipeline ( sets of steps )
 # Be advised that the container will be a new one every step
@@ -31,29 +36,28 @@ services:
 pipeline:
   # Step name "prepare"
   prepare:
-    # Use php56 image
-    image: fpfis/php56
+    # Use php${FPFIS_PHP_VERSION} image
+    image: fpfis/php${FPFIS_PHP_VERSION}
     # Run the following commands
     commands:
       # prepare gw key
-      - export GW_PORT=$(shuf -i 64000-65535 -n 1)
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
 
   # Step name build
   build:
-    image: fpfis/php56
+    image: fpfis/php${FPFIS_PHP_VERSION}
     commands: 
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer)
       
   # And so on ...
   install:
-    image: fpfis/php56
+    image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform
   test:
-    image: fpfis/php56
+    image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       # increase memory_limit for testing :
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
@@ -64,6 +68,3 @@ pipeline:
       # - ./bin/phpcs
       # Run behat tests :
       #- ./bin/behat -c build/behat.yml --colors --strict
-      # Open remote :
-      - echo "Opening remote on http://91.121.78.94:${REMOTE_PORT}"
-      - ssh gw@oraw.waro.be -R 0.0.0.0:10000:127.0.0.1:6081 -i ./.id_rsa -oBatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "echo Opened for 1H && sleep 3600"
