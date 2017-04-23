@@ -44,6 +44,7 @@ services:
 # therefore loosing all customization made in the previous step
 # ( php settings, extension install )
 pipeline:
+
   # Step name "prepare"
   prepare:
     # Use php${FPFIS_PHP_VERSION} image
@@ -54,6 +55,12 @@ pipeline:
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
+
+  # Check code standards :
+  qa:
+    image: fpfis/php${FPFIS_PHP_VERSION}
+    commands: 
+      - ./bin/phpcs
 
   # Step name build
   build:
@@ -67,12 +74,12 @@ pipeline:
     commands:
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
 
+  # Run testing :
   test:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       # increase memory_limit for testing :
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
-      - ./bin/phpcs
       - ./bin/phpunit -c tests/phpunit.xml
       - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
 
