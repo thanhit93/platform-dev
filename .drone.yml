@@ -50,6 +50,7 @@ pipeline:
     image: fpfis/php${FPFIS_PHP_VERSION}
     # Run the following commands
     commands:
+      - cat /proc/{cpu,mem}info|sort|uniq -c|egrep -i "name|memtotal"
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
