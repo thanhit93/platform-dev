@@ -35,6 +35,7 @@ default:
         tags: "~@wip&&~@communities"
   extensions:
     Behat\MinkExtension:
+      browser_name: '{{ behat.browser.name }}'
       goutte: ~
       javascript_session: 'selenium2'
       selenium2:
