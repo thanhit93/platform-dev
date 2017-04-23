@@ -6,6 +6,14 @@ matrix:
   PLATFORM_PROFILE:
     - standard
     - communities
+  SCALING_TEST:
+    - garbage1
+    - garbage2
+    - garbage3
+    - garbage4
+    - garbage5
+    - garbage6
+    - garbage7
 
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
