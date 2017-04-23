@@ -3,8 +3,10 @@
 matrix:
   FPFIS_PHP_VERSION:
     - 56 
-    - 70
-    - 71
+  PLATFORM_PROFILE:
+    - standard
+    - communities
+
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
@@ -40,7 +42,6 @@ pipeline:
     image: fpfis/php${FPFIS_PHP_VERSION}
     # Run the following commands
     commands:
-      # prepare gw key
       - php --version
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
@@ -49,22 +50,28 @@ pipeline:
   build:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands: 
-      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer)
+      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://127.0.0.1:6080/' -Dbehat.wd_host.url='http://127.0.0.1:4444' -Dbehat.browser.name='chrome' -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
       
   # And so on ...
   install:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
-      - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform
+      - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+
   test:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       # increase memory_limit for testing :
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
-      # check uncached version
-      - curl http://127.0.0.1:80
-      # check varnished version
-      - curl http://127.0.0.1:6081
-      # - ./bin/phpcs
-      # Run behat tests :
-      #- ./bin/behat -c build/behat.yml --colors --strict
+      - ./bin/phpcs
+      - ./bin/phpunit -c tests/phpunit.xml
+      - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
+
+  package:
+    image: fpfis/php${FPFIS_PHP_VERSION}
+    when:
+      environment:
+        PLATFORM_PROFILE: standard
+    commands:
+      - ./bin/phing build-multisite-dist -Dcomposer.bin=$(which composer)
+      - tar cz --strip-components=1 build > ../platform-dev-${DRONE_COMMIT}.tar.gz
