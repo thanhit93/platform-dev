@@ -101,8 +101,6 @@ pipeline:
   behat-test:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
-      # increase memory_limit for testing :
-      - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
       - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
 
   package:
