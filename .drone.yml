@@ -5,10 +5,11 @@ matrix:
     - 56 
   PLATFORM_PROFILE:
     - standard
-    - communities
+#    - communities
   BEHAT_BROWSER:
-    - chrome
-    - firefox 
+#    - chrome
+#    - firefox 
+    - phantomjs
 
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
@@ -33,6 +34,17 @@ services:
   # Selenium standalone
   selenium:
     image: selenium/standalone-${BEHAT_BROWSER}
+    when:
+      matrix:
+        - BEHAT_BROWSER: [chrome, firefox]
+
+  # Or phantomjs
+  phantomjs:
+    image: shufo/phantomjs 
+    command: --webdriver=4444
+    when:
+      matrix:
+        - BEHAT_BROWSER: phantomjs
 
 # Start a pipeline ( sets of steps )
 # Be advised that the container will be a new one every step
@@ -51,11 +63,23 @@ pipeline:
       - composer install --ansi
       - mysqladmin -h 127.0.0.1 create platform
 
-  # Step build
-  build:
+  # Prepare dev for selenium
+  build-dev-selenium:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands: 
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://127.0.0.1/' -Dbehat.wd_host.url='http://127.0.0.1:4444/wd/hub' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+    when:
+      matrix:
+        - BEHAT_BROWSER: [chrome, firefox]
+
+  # Prepare dev for phantomjs  
+  build-dev-phantomjs:
+    image: fpfis/php${FPFIS_PHP_VERSION}
+    commands: 
+      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://127.0.0.1/' -Dbehat.wd_host.url='http://127.0.0.1:4444/' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+    when:
+      matrix:
+        - BEHAT_BROWSER: phantomjs
       
   # Check code standards :
   qa:
@@ -69,13 +93,16 @@ pipeline:
     commands:
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
 
-  # Run testing :
-  test:
+  unit-test:
+    image: fpfis/php${FPFIS_PHP_VERSION}
+    commands:
+      - ./bin/phpunit -c tests/phpunit.xml
+
+  behat-test:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       # increase memory_limit for testing :
       - echo "memory_limit=512M" > /etc/php.d/00-memory-limit.ini
-      - ./bin/phpunit -c tests/phpunit.xml
       - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
 
   package:
