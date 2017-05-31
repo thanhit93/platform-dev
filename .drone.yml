@@ -5,9 +5,10 @@ matrix:
     - 56 
   PLATFORM_PROFILE:
     - standard
-#    - communities
+    - communities
   BEHAT_BROWSER:
     - chrome
+    - firefox
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
@@ -31,17 +32,6 @@ services:
   # Selenium standalone
   selenium:
     image: selenium/standalone-${BEHAT_BROWSER}
-    when:
-      matrix:
-        - BEHAT_BROWSER: [chrome, firefox]
-
-  # Or phantomjs
-  phantomjs:
-    image: shufo/phantomjs 
-    command: --webdriver=4444
-    when:
-      matrix:
-        - BEHAT_BROWSER: phantomjs
 
 # Start a pipeline ( sets of steps )
 # Be advised that the container will be a new one every step
@@ -74,19 +64,7 @@ pipeline:
     image: fpfis/php${FPFIS_PHP_VERSION}-dev
     commands: 
       - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://web:8080/' -Dbehat.wd_host.url='http://127.0.0.1:4444/wd/hub' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
-    when:
-      matrix:
-        - BEHAT_BROWSER: [chrome, firefox]
 
-  # Prepare dev for phantomjs  
-  build-dev-phantomjs:
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
-    commands: 
-      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://web:8080/' -Dbehat.wd_host.url='http://phantomjs:4444/' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
-    when:
-      matrix:
-        - BEHAT_BROWSER: phantomjs
-      
   # Check code standards :
   qa:
     image: fpfis/php${FPFIS_PHP_VERSION}-dev
