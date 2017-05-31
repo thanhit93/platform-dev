@@ -75,7 +75,7 @@ pipeline:
   install:
     image: fpfis/php${FPFIS_PHP_VERSION}-dev
     commands:
-      - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+      - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.host=mysql -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
 
   unit-test:
     group: test
