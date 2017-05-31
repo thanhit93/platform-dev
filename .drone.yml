@@ -67,7 +67,7 @@ pipeline:
     # Run the following commands
     commands:
       - sleep 5
-      - mysqladmin -h 127.0.0.1 create platform
+      - mysqladmin -h mysql create platform
 
   # Prepare dev for selenium
   build-dev-selenium:
