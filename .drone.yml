@@ -7,10 +7,7 @@ matrix:
     - standard
 #    - communities
   BEHAT_BROWSER:
-#    - chrome
-#    - firefox 
-    - phantomjs
-
+    - chrome
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
@@ -53,7 +50,8 @@ services:
 pipeline:
 
   # Step name "prepare"
-  prepare:
+  prepare-php:
+    group: prepare
     # Use php${FPFIS_PHP_VERSION} image
     image: fpfis/php${FPFIS_PHP_VERSION}
     # Run the following commands
@@ -61,13 +59,21 @@ pipeline:
       - cat /proc/{cpu,mem}info|sort|uniq -c|egrep -i "name|memtotal"
       - php --version
       - composer install --ansi
+
+  prepare-database:
+    group: prepare
+    # Use php${FPFIS_PHP_VERSION} image
+    image: fpfis/php${FPFIS_PHP_VERSION}
+    # Run the following commands
+    commands:
+      - sleep 5
       - mysqladmin -h 127.0.0.1 create platform
 
   # Prepare dev for selenium
   build-dev-selenium:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands: 
-      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://127.0.0.1/' -Dbehat.wd_host.url='http://127.0.0.1:4444/wd/hub' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://web:8080/' -Dbehat.wd_host.url='http://127.0.0.1:4444/wd/hub' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
     when:
       matrix:
         - BEHAT_BROWSER: [chrome, firefox]
@@ -76,7 +82,7 @@ pipeline:
   build-dev-phantomjs:
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands: 
-      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://127.0.0.1/' -Dbehat.wd_host.url='http://127.0.0.1:4444/' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
+      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://web:8080/' -Dbehat.wd_host.url='http://phantomjs:4444/' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
     when:
       matrix:
         - BEHAT_BROWSER: phantomjs
@@ -94,11 +100,13 @@ pipeline:
       - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
 
   unit-test:
+    group: test
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       - ./bin/phpunit -c tests/phpunit.xml
 
   behat-test:
+    group: test
     image: fpfis/php${FPFIS_PHP_VERSION}
     commands:
       - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
