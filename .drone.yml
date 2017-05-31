@@ -63,7 +63,7 @@ pipeline:
   prepare-database:
     group: prepare
     # Use php${FPFIS_PHP_VERSION} image
-    image: fpfis/php${FPFIS_PHP_VERSION}
+    image: fpfis/mysql56
     # Run the following commands
     commands:
       - sleep 5
