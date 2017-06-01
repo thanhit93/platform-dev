@@ -35,6 +35,8 @@ services:
   # Selenium standalone
   selenium:
     image: selenium/standalone-${BEHAT_BROWSER}
+    environment:
+      - SE_OPTS: -log /tmp/selenium.log
 
 # Start a pipeline ( sets of steps )
 # Be advised that the container will be a new one every step
