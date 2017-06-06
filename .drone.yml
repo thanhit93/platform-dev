@@ -5,13 +5,22 @@ workspace:
 # mostly from https://hub.docker.com/r/fpfis/
 matrix:
   FPFIS_PHP_VERSION:
-    - 56 
+    - 56
   PLATFORM_PROFILE:
     - standard
     - communities
   BEHAT_BROWSER:
     - chrome
     - firefox
+  STRES_TEST_ME:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
