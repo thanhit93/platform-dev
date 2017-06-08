@@ -166,6 +166,32 @@
         depends="install-build-dependencies, delete-platform, make-drupal-core, link-platform-profiles, make-platform, link-platform-resources, install-platform-dev-dependencies, setup-behat, setup-behat-balancer, setup-phpunit, setup-php-codesniffer, update-htaccess, setup-files-directory" />
 
     <target
+            name="rebuild-platform-dev"
+            description="Rebuild a local development version of the platform and keep the settings file."
+            depends="save-settings, build-platform-dev, restore-settings" />
+
+    <target name="save-settings">
+        <available file="${platform.build.dir}/sites/default/settings.php" type="file" property="settings.exists" />
+        <if>
+            <isset property="settings.exists"/>
+            <then>
+                <copy file="${platform.build.dir}/sites/default/settings.php" todir="${platform.resources.dir}" />
+            </then>
+        </if>
+    </target>
+
+    <target name="restore-settings">
+        <available file="${platform.resources.dir}/settings.php" type="file" property="settings.exists" />
+        <if>
+            <isset property="settings.exists"/>
+            <then>
+                <copy file="${platform.resources.dir}/settings.php" todir="${platform.build.dir}/sites/default" />
+                <delete file="${platform.resources.dir}/settings.php"/>
+            </then>
+        </if>
+    </target>
+
+    <target
         name="build-platform-dist"
         description="Build a version of the platform intended to distribute as a release package."
         depends="install-build-dependencies, delete-platform, make-drupal-core, copy-platform-profiles, make-platform, copy-platform-resources, install-platform-dependencies, setup-files-directory" />
