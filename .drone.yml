@@ -1,83 +1,28 @@
 workspace:
   base: /test
   path: platform
-# First declare a few services that will run in background,
-# mostly from https://hub.docker.com/r/fpfis/
-matrix:
-  FPFIS_PHP_VERSION:
-    - 56
-  PLATFORM_PROFILE:
-    - standard
-    - communities
-  BEHAT_BROWSER:
-    - chrome
-    - firefox
-  STRES_TEST_ME:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
 
 services:
   # centos 6 + httpd + php${FPFIS_PHP_VERSION}
   web:
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
+    image: fpfis/php56-dev
     environment:
       - DOCUMENT_ROOT=/test/platform/build
   # centos 6 + mysql community
   mysql:
-    image: fpfis/mysql${FPFIS_PHP_VERSION}
-  # centos 6 + redis
-  redis:
-    image: fpfis/redis
-  # centos 6 + varnish 5 + varnish plugins + nexteuropa VCL
-  varnish:
-    image: fpfis/nexteuropa-varnish5
-  solr:
-    # The following cores are available :
-    # - http://solr:8983/solr/d7_search_api
-    # - http://solr:8983/solr/d7_apachesolr
-    image: fpfis/solr5
-  # Selenium standalone
-  selenium:
-    image: selenium/standalone-${BEHAT_BROWSER}
-    environment:
-      - SE_OPTS=-log /tmp/selenium.log
+    image: fpfis/mysql56
 
-# Start a pipeline ( sets of steps )
-# Be advised that the container will be a new one every step
-# therefore loosing all customization made in the previous step
-# ( php settings, extension install )
 pipeline:
 
   # Step name "prepare"
   prepare-php:
     group: prepare
     # Use php${FPFIS_PHP_VERSION} image
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
+    image: fpfis/php56
     # Run the following commands
     commands:
-      - cat /proc/{cpu,mem}info|sort|uniq -c|egrep -i "name|memtotal"
       - php --version
       - composer install --ansi
-
-  prepare-database:
-    group: prepare
-    # Use php${FPFIS_PHP_VERSION} image
-    image: fpfis/mysql56
-    # Run the following commands
-    commands:
-      - sleep 5
-      - mysqladmin -h mysql create platform
-
-  # Prepare dev for selenium
-  build-dev-selenium:
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
-    commands: 
-      - ./bin/phing build-platform-dev -Dcomposer.bin=$(which composer) -Dbehat.base_url='http://web:8080/' -Dbehat.wd_host.url='http://selenium:4444/wd/hub' -Dbehat.browser.name=${BEHAT_BROWSER} -Dvarnish.server.port=6080 -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
 
   # Check code standards :
   qa:
@@ -85,23 +30,11 @@ pipeline:
     commands: 
       - ./bin/phpcs
 
-  # And so on ...
-  install:
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
-    commands:
-      - ./bin/phing install-platform -Dcomposer.bin=$(which composer) -Ddrupal.db.host=mysql -Ddrupal.db.user=root -Ddrupal.db.password="" -Ddrupal.db.name=platform -Dplatform.profile.name=multisite_drupal_${PLATFORM_PROFILE}
-
   unit-test:
     group: test
     image: fpfis/php${FPFIS_PHP_VERSION}-dev
     commands:
       - ./bin/phpunit -c tests/phpunit.xml
-
-  behat-test:
-    group: test
-    image: fpfis/php${FPFIS_PHP_VERSION}-dev
-    commands:
-      - ./bin/behat -c build/behat.yml  --colors -f pretty --strict
 
   package:
     image: fpfis/php${FPFIS_PHP_VERSION}-dev

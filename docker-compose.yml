@@ -1,0 +1,14 @@
+version: '2'
+services:
+  # centos 6 + httpd + php${FPFIS_PHP_VERSION}
+  web:
+    image: fpfis/php56-dev
+    ports:
+      - 8080:8080
+    working_dir: /development/platform
+    volumes:
+      - .:/development/platform
+    environment:
+      - DOCUMENT_ROOT=/development/platform/build
+  mysql:
+    image: fpfis/mysql56
