@@ -47,8 +47,10 @@ default:
       javascript_session: 'selenium2'
       selenium2:
         wd_host: '{{ behat.wd_host.url }}'
-      base-url: '{{ behat.base_url }}'
+      base_url: '{{ behat.base_url }}'
       files_path: '{{ platform.build.dir }}'
+      javascript_session: selenium2
+      browser_name: firefox
     Drupal\nexteuropa\Extensions\TransformExtension:
       transform_tokens:
         nept_element:block:page-language-switcher: '.block-language-selector-page'
@@ -98,7 +100,7 @@ default:
         log_in: "Log in"
     Bex\Behat\ScreenshotExtension:
       screenshot_taking_mode: failed_scenarios
-      active_image_drivers: img42
+      active_image_drivers: local 
   formatters:
     {{ behat.formatter.name }}: ~
 
