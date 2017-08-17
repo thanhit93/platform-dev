@@ -50,7 +50,7 @@ default:
       base_url: '{{ behat.base_url }}'
       files_path: '{{ platform.build.dir }}'
       javascript_session: selenium2
-      browser_name: firefox
+      browser_name: chrome
     Drupal\nexteuropa\Extensions\TransformExtension:
       transform_tokens:
         nept_element:block:page-language-switcher: '.block-language-selector-page'
