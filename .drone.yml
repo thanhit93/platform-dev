@@ -1,8 +1,6 @@
 workspace:
   base: /test
   path: platform
-# First declare a few services that will run in background,
-# mostly from https://hub.docker.com/r/fpfis/
 matrix:
   FPFIS_PHP_VERSION:
     - 56
