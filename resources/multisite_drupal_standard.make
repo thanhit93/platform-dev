@@ -86,6 +86,7 @@ projects[bounce][version] = "1.7"
 
 projects[captcha][subdir] = "contrib"
 projects[captcha][version] = "1.3"
+projects[captcha][patch][] = patches/captcha-2907137.patch
 
 projects[chosen][subdir] = "contrib"
 projects[chosen][version] = 2.0-beta4

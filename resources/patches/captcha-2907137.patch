@@ -1,0 +1,44 @@
+From 85e9179fba7604238aac28d66d6a1254629a7d91 Mon Sep 17 00:00:00 2001
+From: Fabiano Sant'Ana <fabiano@chuva-inc.com>
+Date: Wed, 6 Sep 2017 15:51:38 -0300
+Subject: [PATCH] Increases the db column size
+
+---
+ captcha.install | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/captcha.install b/captcha.install
+index dc37f83..b34a779 100644
+--- a/captcha.install
++++ b/captcha.install
+@@ -69,7 +69,7 @@ function captcha_schema() {
+       'sid' => array(
+         'description' => "Session ID of the user.",
+         'type' => 'varchar',
+-        'length' => 64,
++        'length' => 128,
+         'not null' => TRUE,
+         'default' => '',
+       ),
+@@ -326,3 +326,18 @@ function captcha_update_7000() {
+       ->execute();
+   }
+ }
++
++/**
++ * Increase the Session Id field size.
++ */
++function captcha_update_7001() {
++  $schema = captcha_schema();
++
++  db_change_field('captcha_sessions', 'sid', 'sid', array(
++    'description' => "Session ID of the user.",
++    'type' => 'varchar',
++    'length' => 128,
++    'not null' => TRUE,
++    'default' => '',
++  ));
++}
+-- 
+2.5.0
+
